@@ -29,6 +29,7 @@ class User(UserMixin, db.Model):
     # 認証を行うためメールアドレスとパスワードカラムを追加
     mail = db.Column(db.String(128), unique=True)
     password = db.Column(db.String(128))
+    role = db.Column(db.String(128), nullable=False)
     # パスワードをハッシュ化
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -57,6 +58,11 @@ def login_get():
   if current_user.is_authenticated:
     # トップページに移動
     return redirect(url_for('index_get'))
+    #ユーザーが教員か生徒か
+    if user.role == 'teacher':
+        return redirect('/index_teacher')
+    elif user.role == 'student':
+        return redirect('/index_student')
   
   # loginページのテンプレートを返す
   return render_template('login.html')
@@ -78,6 +84,15 @@ def login_post():
     # トップページへリダイレクト
     return redirect(url_for('index_get'))
 
+
+#教員・生徒でログイン後の画面を切り分ける
+@app.route('/index_teacher')
+def index_teacher():
+    return '教員用ページ'
+
+@app.route('/index_student')
+def index_student():
+    return '生徒用ページ'
 
 @app.route('/logout')
 def logout():
