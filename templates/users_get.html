@@ -6,19 +6,23 @@
 </head>
 <body>
     <!-- 年齢フォームの追加 -->
-    <h1>追加フォーム</h1>
+    <h1>ユーザー追加</h1>
     <form action="/users" method="POST">
         <div>名前:<input name="user_name"></input></div>
         <div>年齢:<input name="user_age"></input></div>
         <div>メールアドレス:<input name="mail"></input></div>
         <div>パスワード:<input type="password" name="password"></input></div>
-        <div><label for="role_teacher">
-            <input type="checkbox" id="role_teacher" name="role" value="teacher">
-        </label></div>
-        <br>
-        <label for="role_student">
-            <input type="checkbox" id="role_student" name="role" value="student">
+        <div>
+            <label for="role">役割:</label>
+            <label for="role_teacher">
+            <input type="checkbox" id="role_teacher" name="user_role" value="teacher">
+            教員
         </label>
+        <label for="role_student">
+            <input type="checkbox" id="role_student" name="user_role" value="student">
+            生徒
+        </label>
+        </div>
         <div>
             <input type="submit" value="送信">
             <input type="reset" value="取消">
@@ -32,12 +36,14 @@
             <th >ID</th>
             <th >名前</th>
             <th >年齢</th>
+            <th >役割</th>
         </tr>
         {% for user in users %}
         <tr>
             <td><a href="/users/{{ user.id }}"><p>{{ user.id }}</p></a></td>
             <td>{{ user.name }}</td>
             <td>{{ user.age }}</td>
+            <td>{{ user.role }}</td>
         </tr>
         {% endfor %}
     </table>

@@ -49,7 +49,13 @@ def load_user(id):
 @app.route("/",methods=['GET'])
 @login_required
 def index_get():
+    #ユーザーが教員か生徒か
+    if current_user.role == 'teacher':
+        return redirect('/index_teacher')
+    elif current_user.role == 'student':
+        return redirect('/index_student')
     return render_template('index.html')
+    
 
 
 @app.route('/login', methods=['GET'])
@@ -114,7 +120,8 @@ def users_post():
     user = User(
         name=request.form["user_name"],
         age=request.form["user_age"],
-        mail=request.form["mail"]
+        mail=request.form["mail"],
+        role=request.form["user_role"]
     )
     #パスワードを安全に保存
     user.set_password(request.form["password"])
@@ -137,6 +144,7 @@ def users_id_post_edit(id):
     user = User.query.get(id)
     user.name = request.form["user_name"]
     user.age = request.form["user_age"]
+    user.role = request.form["user_role"]
     db.session.merge(user)
     db.session.commit()
     return redirect(url_for('users_get'))
