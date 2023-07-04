@@ -38,6 +38,24 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
             return check_password_hash(self.password, password)
 
+class User(db.Model):
+    __tablename__ = 'questions'
+
+    id = Column(db.Integer, primary_key = True)
+    question_text = Column(db.String(128))
+    correct_choice_id = Column(db.Integer, ForeignKey('choices.id'))
+
+    choices = relationship('Choice', back_populates='question') 
+
+class User(db.Model):
+    __tablename__ = 'choices'
+    
+    id = Column(db.Integer, primary_key=True)
+    question_id = Column(db.Integer, ForeignKey('questions.id'))
+    choice_text = Column(db.String(128))
+    is_correct = Column(Boolean)
+
+    question = relationship('Question', back_populates='choices')
 
 @login.user_loader
 def load_user(id):
@@ -93,12 +111,14 @@ def login_post():
 
 #教員・生徒でログイン後の画面を切り分ける
 @app.route('/index_teacher')
-def index_teacher():
-    return '教員用ページ'
+@login_required
+def teacher_page():
+    return render_template('index_teacher.html')
 
 @app.route('/index_student')
-def index_student():
-    return '生徒用ページ'
+@login_required
+def student_page():
+    return render_template('index_student.html')
 
 @app.route('/logout')
 def logout():
@@ -155,6 +175,19 @@ def users_id_post_delete(id):
     db.session.delete(user)
     db.session.commit()
     return redirect(url_for('users_get'))
+
+@app.route("/question",methods=['GET'])
+def question():
+    return render_template('question.html')
+
+@app.route("/results",methods=['GET'])
+def results():
+    return render_template('results.html')
+
+@app.route("/quiz",methods=['GET'])
+def quiz_page():
+    return render_template('quiz.html')
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8085, debug=True)
