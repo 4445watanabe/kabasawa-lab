@@ -14,6 +14,7 @@ DB_NAME = "flask_app"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqldb://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}?charset=utf8"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_ECHO']=True
 app.secret_key = "secret"
 
 db = SQLAlchemy(app)
@@ -39,23 +40,18 @@ class User(UserMixin, db.Model):
             return check_password_hash(self.password, password)
 #問題用のDB
 class Question(db.Model):
-    __tablename__ = 'questions'
+    __tablename__="questions"
+    id = db.Column(db.Integer, primary_key = True)
+    question_text = db.Column(db.String(128), unique=True, nullable=False)
+    choices = db.relationship('Choice', backref='question', lazy=True) 
 
-    id = Column(db.Integer, primary_key = True)
-    question_text = Column(db.String(128))
-    correct_choice_id = Column(db.Integer, ForeignKey('choices.id'))
-
-    choices = relationship('Choice', back_populates='question') 
-
-class User(db.Model):
-    __tablename__ = 'choices'
-    
-    id = Column(db.Integer, primary_key=True)
-    question_id = Column(db.Integer, ForeignKey('questions.id'))
-    choice_text = Column(db.String(128))
-    is_correct = Column(Boolean)
-
-    question = relationship('Question', back_populates='choices')
+#答え用のDB
+class Choice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('questions.id'))
+    choice_text = db.Column(db.String(128), unique=True, nullable=False)
+    is_correct = db.Column(db.Boolean)
+    question = db.relationship('Question', backref='choices')
 
 @login.user_loader
 def load_user(id):
@@ -150,6 +146,43 @@ def users_post():
     return redirect(url_for('users_get'))
 
 
+#クイズ作成
+@app.route("/quiz",methods=['POST'])
+def quiz_post():
+    questions = Question(
+        question_text = request.form["a"]
+    )
+    questions.choices=[
+        Choice(
+            question_id = request.form["b"],
+            choice_text = request.form["c"],
+            is_correct = request.form["d"]
+        ),
+        Choice(
+            question_id = request.form["a"],
+            choice_text = request.form["a"],
+            is_correct = request.form["a"]
+        ),
+        Choice(
+            question_id = request.form["a"],
+            choice_text = request.form["a"],
+            is_correct = request.form["a"]
+        ),
+        Choice(
+            question_id = request.form["a"],
+            choice_text = request.form["a"],
+            is_correct = request.form["a"]
+        ),
+    ]
+    db.session.add(questions)
+    db.session.commit()
+    return render_template('quiz.html')
+    
+@app.route("/question",methods=['GET'])
+def questions_get():
+    question = Question.query.all()
+    return render_template()
+
 @app.route("/users/<id>",methods=['GET'])
 @login_required
 def users_id_get(id):
@@ -176,15 +209,15 @@ def users_id_post_delete(id):
     db.session.commit()
     return redirect(url_for('users_get'))
 
-@app.route("/question",methods=['GET'])
+@app.route("/question")
 def question():
     return render_template('question.html')
 
-@app.route("/results",methods=['GET'])
+@app.route("/results")
 def results():
     return render_template('results.html')
 
-@app.route("/quiz",methods=['GET'])
+@app.route("/quiz")
 def quiz_page():
     return render_template('quiz.html')
 
