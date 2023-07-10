@@ -37,8 +37,8 @@ class User(UserMixin, db.Model):
     # 入力されたパスワードが登録されているパスワードハッシュと一致するかを確認
     def check_password(self, password):
             return check_password_hash(self.password, password)
-
-class User(db.Model):
+#問題用のDB
+class Question(db.Model):
     __tablename__ = 'questions'
 
     id = Column(db.Integer, primary_key = True)
