@@ -2,10 +2,15 @@
 <html lang="jp">
 <head>
     <meta charset="UTF-8">
-    <title>Top</title>
+    <title>student_page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
 </head>
 <body>
     <h1>生徒用ホームページ</h1>
     ようこそ、{{ current_user.name }}!
+    <div>
+    <a href="http://192.168.7.43:8085/question" target="_blank" >問題ページに移動</a>
+    <a href="http://192.168.7.43:8085/results" target="_blank" >結果ページに移動</a>
+</div>
 </body>
 </html>

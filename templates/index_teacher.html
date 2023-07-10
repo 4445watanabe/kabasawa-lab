@@ -2,10 +2,16 @@
 <html lang="jp">
 <head>
     <meta charset="UTF-8">
-    <title>Top</title>
+    <title>teacher_page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
 </head>
 <body>
     <h1>教員用ホームページ</h1>
     ようこそ、{{ current_user.name }}!
+    <div>
+    <!-- 次のページへ移動するボタン -->
+    <a href="http://192.168.7.43:8085/quiz" target="_blank" rel="noopener">クイズ作成ページに移動</a>
+    </div>
+    
 </body>
 </html>
