@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <title>question_page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+</head>
+<body>
+    <h1>クイズページ</h1>
+    <form action="/submit_quiz" method="POST">
+        {% for question in questions %}
+          <p>{{ question.question_text }}</p>
+          <input type="hidden" name="question_id" value="{{ question.id }}">
+          <input type="radio" name="answer" value="choice1">{{ question.choices[0].choice_text }}<br>
+          <input type="radio" name="answer" value="choice2">{{ question.choices[1].choice_text }}<br>
+          <input type="radio" name="answer" value="choice3">{{ question.choices[2].choice_text }}<br>
+          <input type="radio" name="answer" value="choice4">{{ question.choices[3].choice_text }}<br>
+          <br>
+        {% endfor %}
+        <input type="submit" value="回答する">
+      </form>
+</body>
+</html>

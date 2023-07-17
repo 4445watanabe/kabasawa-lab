@@ -50,8 +50,7 @@ class Choice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question_id = db.Column(db.Integer, db.ForeignKey('questions.id'))
     choice_text = db.Column(db.String(128), unique=True, nullable=False)
-    is_correct = db.Column(db.Boolean)
-    question = db.relationship('Question', backref='choices')
+    is_correct = db.Column(db.Boolean, nullable=False)
 
 @login.user_loader
 def load_user(id):
@@ -68,8 +67,6 @@ def index_get():
         return redirect('/index_teacher')
     elif current_user.role == 'student':
         return redirect('/index_student')
-    return render_template('index.html')
-    
 
 
 @app.route('/login', methods=['GET'])
@@ -106,11 +103,17 @@ def login_post():
 
 
 #教員・生徒でログイン後の画面を切り分ける
-@app.route('/index_teacher')
+#教員側
+@app.route('/index_teacher',methods=['GET'])
 @login_required
 def teacher_page():
-    return render_template('index_teacher.html')
+    questions = Question.query.all()
+    choices = Choice.query.all()
+    for question in questions:
+        print(question.choices)
+    return render_template('index_teacher.html',questions = questions,choices = choices)
 
+#生徒側
 @app.route('/index_student')
 @login_required
 def student_page():
@@ -149,40 +152,43 @@ def users_post():
 #クイズ作成
 @app.route("/quiz",methods=['POST'])
 def quiz_post():
-    questions = Question(
-        question_text = request.form["a"]
+    question = Question(
+        question_text = request.form["question_text"]
     )
-    questions.choices=[
+    db.session.add(question)
+    db.session.commit()
+
+    question_id = question.id
+    
+    choices = [
         Choice(
-            question_id = request.form["b"],
-            choice_text = request.form["c"],
-            is_correct = request.form["d"]
+            question_id = question_id,
+            choice_text = request.form["choice_text1"],
+            is_correct = request.form.get("is_correct1") == "choice1"
         ),
         Choice(
-            question_id = request.form["a"],
-            choice_text = request.form["a"],
-            is_correct = request.form["a"]
+            question_id = question_id,
+            choice_text = request.form["choice_text2"],
+            is_correct = request.form.get("is_correct2") == "choice2"
         ),
         Choice(
-            question_id = request.form["a"],
-            choice_text = request.form["a"],
-            is_correct = request.form["a"]
+            question_id = question_id,
+            choice_text = request.form["choice_text3"],
+            is_correct = request.form.get("is_correct3") == "choice3"
         ),
         Choice(
-            question_id = request.form["a"],
-            choice_text = request.form["a"],
-            is_correct = request.form["a"]
+            question_id = question_id,
+            choice_text = request.form["choice_text4"],
+            is_correct = request.form.get("is_correct4")== "choice4"
         ),
     ]
-    db.session.add(questions)
-    db.session.commit()
-    return render_template('quiz.html')
-    
-@app.route("/question",methods=['GET'])
-def questions_get():
-    question = Question.query.all()
-    return render_template()
 
+    question.choices = choices
+
+    db.session.commit()
+    
+    return render_template('add_quiz.html')
+    
 @app.route("/users/<id>",methods=['GET'])
 @login_required
 def users_id_get(id):
@@ -209,9 +215,40 @@ def users_id_post_delete(id):
     db.session.commit()
     return redirect(url_for('users_get'))
 
-@app.route("/question")
-def question():
-    return render_template('question.html')
+@app.route("/delete_question", methods=["POST"])
+def delete_question():
+    question_text = request.form["question_text"]  # 削除する質問のテキストをリクエストから取得
+
+    question_to_delete = Question.query.filter_by(question_text=question_text).first()  # 質問を検索
+
+    if question_to_delete:
+        db.session.delete(question_to_delete)  # 質問を削除
+        db.session.commit()  # 変更をコミット
+        return "質問が削除されました"
+    else:
+        return "指定された質問は存在しません"
+
+@app.route("/do_quiz",methods=["GET"])
+def do_quiz():
+    question_id = request.args.get("question_id")
+    choices = request.args.get("choices")
+    question = Question.query.get(question_id)
+
+    return render_template('do_quiz.html',question=question, choices=choices)
+
+@app.route("/submit_quiz",methods=["POST"])
+def submit_quiz():
+    question_id = request.form["question_id"]
+    answer = request.form["answer"]
+
+    question = Question.query.get(question_id)
+    correct_answer = question.choices[question.correct_choice_id -1].choice_text
+
+    if answer == correct_answer:
+        return redirect(url_for("true_page"))
+    else:
+        return redirect(url_for("mistake_page"))
+
 
 @app.route("/results")
 def results():
@@ -219,7 +256,8 @@ def results():
 
 @app.route("/quiz")
 def quiz_page():
-    return render_template('quiz.html')
+    return render_template('add_quiz.html')
+
 
 
 if __name__ == "__main__":

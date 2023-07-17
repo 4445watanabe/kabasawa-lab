@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <title>quiz_page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+</head>
+<body>
+    <h1>Quiz作成ページ</h1>
+    ようこそ、{{ current_user.name }}!
+    <form action="/quiz" method="POST">
+        <label for="question_text">質問:</label>
+        <input type="text" name="question_text" id="question_text">
+        <br>
+        <label for="choice_text1">選択肢1:</label>
+        <input type="text" name="choice_text1" id="choice_text1">
+        <input type="radio" name="is_correct1" value="choice1">
+        <label for="is_correct1">正解</label>
+        <br>
+        <label for="choice_text2">選択肢2:</label>
+        <input type="text" name="choice_text2" id="choice_text2">
+        <input type="radio" name="is_correct2" value="choice2">
+        <label for="is_correct2">正解</label>
+        <br>
+        <label for="choice_text3">選択肢3:</label>
+        <input type="text" name="choice_text3" id="choice_text3">
+        <input type="radio" name="is_correct3" value="choice3">
+        <label for="is_correct3">正解</label>
+        <br>
+        <label for="choice_text4">選択肢4:</label>
+        <input type="text" name="choice_text4" id="choice_text4">
+        <input type="radio" name="is_correct4" value="choice4">
+        <label for="is_correct4">正解</label>
+        <br>
+        <input type="submit" value="クイズを追加">
+      </form>
+</body>
+</html>
