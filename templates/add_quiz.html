@@ -8,6 +8,11 @@
 <body>
     <h1>Quiz作成ページ</h1>
     ようこそ、{{ current_user.name }}!
+    <div>
+        <form action="{{ url_for('index_get') }}" method="get">
+            <button type="submit">戻る</button>
+          </form>          
+    </div>
     <form action="/quiz" method="POST">
         <label for="question_text">質問:</label>
         <input type="text" name="question_text" id="question_text">

@@ -22,20 +22,26 @@
             <th >選択肢2</th>
             <th >選択肢3</th>
             <th >選択肢4</th>
+            <th >正解の選択肢</th>
+            <th >操作</th>
         </tr>
         {% for question in questions  %}
         <tr>
             <td>{{question.question_text}}</td>
             {%for choice in question.choices %}
             <td>{{choice.choice_text}}</td>
+            {% if choice.is_correct %}
+            <td>{{ choice.choice_text }}</td>
+            {% endif %}
             {% endfor %}
+            <td>
+                <form action="/delete_question" method="POST">
+                    <input type="hidden" name="question_id" value="{{ question_id}}">
+                    <button type="submit">削除</input>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </table>
-
-    <h2>削除フォーム</h2>
-    <form action="/delete_question" method="POST">
-        <input type="submit" value="削除">
-    </form>
 </body>
 </html>

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, Response, redirect, url_for, 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 # ライブラリの追加
+from random import shuffle
 from flask_login import LoginManager, UserMixin, current_user, login_user, login_required, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -43,6 +44,7 @@ class Question(db.Model):
     __tablename__="questions"
     id = db.Column(db.Integer, primary_key = True)
     question_text = db.Column(db.String(128), unique=True, nullable=False)
+    correct_choice_id = db.Column(db.Integer, nullable=False)
     choices = db.relationship('Choice', backref='question', lazy=True) 
 
 #答え用のDB
@@ -152,9 +154,12 @@ def users_post():
 #クイズ作成
 @app.route("/quiz",methods=['POST'])
 def quiz_post():
+    question_text = request.form["question_text"]
+    correct_choice_id = int(request.form.get("correct_choice",0))
     question = Question(
-        question_text = request.form["question_text"]
-    )
+        question_text = question_text,
+        correct_choice_id=correct_choice_id
+    ) 
     db.session.add(question)
     db.session.commit()
 
@@ -164,27 +169,26 @@ def quiz_post():
         Choice(
             question_id = question_id,
             choice_text = request.form["choice_text1"],
-            is_correct = request.form.get("is_correct1") == "choice1"
+            is_correct = request.form.get("correct_choice_id") == "choice1"
         ),
         Choice(
             question_id = question_id,
             choice_text = request.form["choice_text2"],
-            is_correct = request.form.get("is_correct2") == "choice2"
+            is_correct = request.form.get("correct_choice_id") == "choice2"
         ),
         Choice(
             question_id = question_id,
             choice_text = request.form["choice_text3"],
-            is_correct = request.form.get("is_correct3") == "choice3"
+            is_correct = request.form.get("correct_choice_id") == "choice3"
         ),
         Choice(
             question_id = question_id,
             choice_text = request.form["choice_text4"],
-            is_correct = request.form.get("is_correct4")== "choice4"
+            is_correct = request.form.get("correct_choice_id")== "choice4"
         ),
     ]
 
-    question.choices = choices
-
+    db.session.bulk_save_objects(choices)
     db.session.commit()
     
     return render_template('add_quiz.html')
@@ -217,29 +221,46 @@ def users_id_post_delete(id):
 
 @app.route("/delete_question", methods=["POST"])
 def delete_question():
-    question_text = request.form["question_text"]  # 削除する質問のテキストをリクエストから取得
+    questions = Question.query.all()
+    choices = Choice.query.all()
+    
+    for question in questions:
+        db.session.delete(question)
 
-    question_to_delete = Question.query.filter_by(question_text=question_text).first()  # 質問を検索
+    for choice in choices:
+        db.session.delete(choice)
+    
+    db.session.commit()
+    return redirect(url_for('index_get'))
 
-    if question_to_delete:
-        db.session.delete(question_to_delete)  # 質問を削除
-        db.session.commit()  # 変更をコミット
-        return "質問が削除されました"
-    else:
-        return "指定された質問は存在しません"
-
-@app.route("/do_quiz",methods=["GET"])
+@app.route("/do_quiz",methods=["GET","POST"])
 def do_quiz():
-    question_id = request.args.get("question_id")
-    choices = request.args.get("choices")
-    question = Question.query.get(question_id)
+    questions = Question.query.all()
+    shuffle(questions)
 
-    return render_template('do_quiz.html',question=question, choices=choices)
+    if request.method == 'GET':
+        if len(questions) == 0:
+            return "問題がありません"
 
+        question = questions.pop(0)
+        return render_template("do_quiz.html", question=question)
+
+    elif request.method == 'POST':
+        selected_choice_id = int(request.form["selected_choice"])
+        selected_choice = Choice.query.get(selected_choice_id)
+        if not selected_choice:
+            return "Selected choice not found"
+
+        is_correct = selected_choice.is_correct
+
+
+        if len(questions) == 0:
+             return render_template('do_quiz.html',question=question)
+
+   
 @app.route("/submit_quiz",methods=["POST"])
 def submit_quiz():
     question_id = request.form["question_id"]
-    answer = request.form["answer"]
 
     question = Question.query.get(question_id)
     correct_answer = question.choices[question.correct_choice_id -1].choice_text
