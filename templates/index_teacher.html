@@ -17,27 +17,29 @@
     <h1>検索結果</h1>
     <table>
         <tr>
-            <th >問題テキスト</th>
-            <th >選択肢1</th>
-            <th >選択肢2</th>
-            <th >選択肢3</th>
-            <th >選択肢4</th>
-            <th >正解の選択肢</th>
-            <th >操作</th>
+            <th>問題テキスト</th>
+            <th>選択肢1</th>
+            <th>選択肢2</th>
+            <th>選択肢3</th>
+            <th>選択肢4</th>
+            <th>正解の選択肢</th>
+            <th>操作</th>
         </tr>
-        {% for question in questions  %}
+        {% for question in questions %}
         <tr>
-            <td>{{question.question_text}}</td>
-            {%for choice in question.choices %}
-            <td>{{choice.choice_text}}</td>
-            {% if choice.is_correct %}
+            <td>{{ question.question_text }}</td>
+            {% set correct_choice_text = "" %}
+            {% for choice in question.choices %}
             <td>{{ choice.choice_text }}</td>
+            {% if choice.is_correct %}
+                {% set correct_choice_text = choice.choice_text %}
             {% endif %}
             {% endfor %}
+            <td>{{ correct_choice_text }}</td>
             <td>
                 <form action="/delete_question" method="POST">
-                    <input type="hidden" name="question_id" value="{{ question_id}}">
-                    <button type="submit">削除</input>
+                    <input type="hidden" name="question_id" value="{{ question.id }}">
+                    <button type="submit">削除</button>
                 </form>
             </td>
         </tr>
